@@ -58,20 +58,19 @@ class ClonerCog(commands.Cog):
                     conditions_to_functions[True] = conditions_to_functions.get(True, [])
                     conditions_to_functions[True].append((logger_message, executing_function))
 
-            append_if_different(cloner_args["clear_guild"], "Preparing guild to process...", cloner.prepare_server)
-            append_if_different(cloner_args["clone_icon"], "Processing server icon...", cloner.clone_icon)
-            append_if_different(cloner_args["clone_banner"], "Processing server banner...", cloner.clone_banner)
-            append_if_different(cloner_args["clone_roles"], "Processing server roles...", cloner.clone_roles)
-            append_if_different(cloner_args["clone_channels"], "Processing server categories...",
-                                cloner.clone_categories)
-            append_if_different(cloner_args["clone_channels"], "Processing server channels...", cloner.clone_channels)
-            append_if_different(cloner_args["clone_emojis"], "Processing server emojis...", cloner.clone_emojis)
-            append_if_different(cloner_args["clone_stickers"], "Processing stickers...", cloner.clone_stickers)
-            append_if_different(cloner_args["clone_messages"], "Processing server messages...", cloner.clone_messages)
+            append_if_different(cloner_args["clear_guild"], "Preparing guild to process...", latest_cloner.prepare_server)
+            append_if_different(cloner_args["clone_icon"], "Processing server icon...", latest_cloner.clone_icon)
+            append_if_different(cloner_args["clone_banner"], "Processing server banner...", latest_cloner.clone_banner)
+            append_if_different(cloner_args["clone_roles"], "Processing server roles...", latest_cloner.clone_roles)
+            append_if_different(cloner_args["clone_channels"], "Processing server categories...", latest_cloner.clone_categories)
+            append_if_different(cloner_args["clone_channels"], "Processing server channels...", latest_cloner.clone_channels)
+            append_if_different(cloner_args["clone_emojis"], "Processing server emojis...", latest_cloner.clone_emojis)
+            append_if_different(cloner_args["clone_stickers"], "Processing stickers...", latest_cloner.clone_stickers)
+            append_if_different(cloner_args["clone_messages"], "Processing server messages...", latest_cloner.clone_messages)
             true_conditions = conditions_to_functions[True]
 
             for message, function in true_conditions:
-                logger.info(message)
+                main.logger.info(message)
                 await function()
 
     @commands.command(name="copy", aliases=["clone", "paste", "parse", "start"])
@@ -161,14 +160,12 @@ class ClonerCog(commands.Cog):
         conditions_to_functions[args["clone_icon"]].append(("Processing server icon...", cloner.clone_icon))
         conditions_to_functions[args["clone_banner"]].append(("Processing server banner...", cloner.clone_banner))
         conditions_to_functions[args["clone_roles"]].append(("Processing server roles...", cloner.clone_roles))
-        conditions_to_functions[args["clone_channels"]].append(("Processing server categories...",
-                                                                cloner.clone_categories))
-        conditions_to_functions[args["clone_channels"]].append(("Processing server channels...",
-                                                                cloner.clone_channels))
+        conditions_to_functions[args["clone_channels"]].append(("Processing server categories...", cloner.clone_categories))
+        conditions_to_functions[args["clone_channels"]].append(("Processing server channels...", cloner.clone_channels))
         conditions_to_functions[args["clone_emojis"]].append(("Processing server emojis...", cloner.clone_emojis))
         conditions_to_functions[args["clone_stickers"]].append(("Processing stickers...", cloner.clone_stickers))
-        conditions_to_functions[args["clone_messages"]].append(("Processing server messages...",
-                                                                cloner.clone_messages))
+        conditions_to_functions[args["clone_messages"]].append(("Processing server messages...", cloner.clone_messages))
+
         true_conditions = conditions_to_functions[True]
 
         for message, function in true_conditions:

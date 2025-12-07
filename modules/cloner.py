@@ -3,9 +3,12 @@ import datetime
 
 from collections import deque
 from collections.abc import Sequence
+from discord.file import File
+import json
+from typing import Any
 
 import discord
-from discord import CategoryChannel
+from discord import CategoryChannel, File
 from discord.abc import GuildChannel
 
 import main
@@ -217,7 +220,7 @@ class ServerCopy:
             await asyncio.sleep(self.delay)
         self.last_executed_method = "clone_roles"
 
-    async def clone_categories(self, perms: bool = True) -> None:
+    async def clone_categories(self, perms: bool = main.clone_roles) -> None:
         """
         Clones all category channels from the source guild to the new guild with appropriate permissions and settings.
 
@@ -247,7 +250,7 @@ class ServerCopy:
             await asyncio.sleep(self.delay)
         self.last_executed_method = "clone_categories"
 
-    async def clone_channels(self, perms: bool = True) -> None:
+    async def clone_channels(self, perms: bool = main.clone_roles) -> None:
         """
         Clones all channels from the source guild to the new guild, respecting the category hierarchy and permissions.
 
@@ -445,15 +448,21 @@ class ServerCopy:
             delay (float): The delay in seconds before sending the message, to avoid rate limits. Defaults to 0.85.
         """
         author: discord.User = message.author
-        files = []
+        files: Sequence[File] = []
         if message.attachments:
             for attachment in message.attachments:
                 try:
+                    file: File = await attachment.to_file(
+                        filename=attachment.filename,
+                        description=attachment.description,
+                        spoiler=attachment.is_spoiler()
+                    )
                     files.append(await attachment.to_file())
+                    # print(files[-1].filename)
                 except discord.NotFound:
                     pass
         creation_time = message.created_at.strftime("%d/%m/%Y %H:%M")
-        name: str = f"{author.name}#{author.discriminator} at {creation_time}"
+        name: str = f"{author.name} at {creation_time}"
         content = message.content
 
         for mapping_type, mapping_dict in self.mappings.items():
@@ -475,17 +484,15 @@ class ServerCopy:
 
                 content = content.replace(old_ref, new_ref)
         try:
-            await webhook.send(content=content, avatar_url=author.display_avatar.url,
-                               username=name, embeds=message.embeds, files=files)
+            await webhook.send(content=content, avatar_url=author.display_avatar.url, username=name, embeds=message.embeds, files=files)
             if self.debug and message.content:
-                content = (truncate_string(string=message.content, length=32,
-                                           replace_newline_with="") if message.content else "")
+                content = (truncate_string(string=message.content, length=32, replace_newline_with="") if message.content else "")
                 content = content.rstrip()
                 self.logger.debug(f"Cloned message from {author.name}" + f": {content}" if content else "")
         except discord.HTTPException or discord.Forbidden:
             if self.debug:
                 self.logger.debug(
-                    "Can't send, skipping message in #{}".format(message.channel.name if message.channel else ""))
+                    f"Can't send, skipping message in #{message.channel.name if message.channel else ''}: {message.content}")
         await asyncio.sleep(delay)
 
     async def clone_messages(self, messages_limit: int = main.messages_limit,
