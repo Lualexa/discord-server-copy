@@ -131,15 +131,16 @@ class ClonerCog(commands.Cog):
 
         if args["new"] is None or await self.bot.fetch_guild(args["new"]) is None:
             logger.info("Creating server...")
+            new_guild: discord.Guild | None = None
             try:
-                new_guild: discord.Guild = await self.bot.create_guild(name=target_name)
+               new_guild = await self.bot.create_guild(name=target_name)
             except discord.HTTPException:
                 logger.error("Unable to create server automatically. ")
                 logger.error('Create it yourself and run command with "new=id" argument')
                 return
         else:
             logger.info("Getting server...")
-            new_guild: discord.Guild = await self.bot.fetch_guild(args["new"])
+            new_guild = await self.bot.fetch_guild(args["new"])
 
         if new_guild is None:
             logger.error("Can't create server. Maybe account disabled or requires captcha?")
