@@ -437,8 +437,7 @@ class ServerCopy:
 
         self.last_executed_method = "clone_stickers"
 
-    async def send_webhook(self, webhook: discord.Webhook, message: discord.Message,
-                           delay: float = 0.85) -> None:
+    async def send_webhook(self, webhook: discord.Webhook, message: discord.Message, delay: float = main.messages_delay) -> None:
         """
         Sends a message through the provided webhook, attempting to clone content, attachments, and embeds from the original message.
 
@@ -462,7 +461,7 @@ class ServerCopy:
                 except discord.NotFound:
                     pass
         creation_time = message.created_at.strftime("%d/%m/%Y %H:%M")
-        name: str = f"{author.name} at {creation_time}"
+        name: str = f"♤ {author.global_name or author.name} ♤  ({author.name if author.global_name else author.id})  at {creation_time}"
         content = message.content
 
         for mapping_type, mapping_dict in self.mappings.items():
@@ -667,7 +666,7 @@ class ServerCopy:
             "last_executed_method": self.last_executed_method
         }
         with open(filename, "w") as f:
-            json.dump(state, f, indent=2)
+            json.dump(to_jsonable(state), f, indent=2)
 
     def load_state(self, filename="server_copy_state.json"):
         """Loads the state of the ServerCopy instance from a JSON file."""
@@ -702,3 +701,24 @@ class ServerCopy:
             self.logger.warning(f"State file '{filename}' not found.")
         except json.JSONDecodeError:
             self.logger.error(f"Error decoding JSON data from '{filename}'.")
+
+
+
+def to_jsonable(x):
+    # discord.py SequenceProxy -> list
+    if hasattr(x, "_proxied"):
+        return list(x)
+
+    # normal sequences
+    if isinstance(x, (list, tuple, set)):
+        return [ to_jsonable(i) for i in x ]
+
+    # dicts
+    if isinstance(x, dict):
+        return { k: to_jsonable(v) for k, v in x.items() }
+
+    # non serialisable
+    if hasattr(x, "__dict__"):
+        return str(x)
+
+    return x
